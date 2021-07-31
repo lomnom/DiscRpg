@@ -77,7 +77,7 @@ channelMessages={}
 
 @bot.event
 async def on_message(message):
-	if (not (message.author == bot.user)) and ((message.channel.name=="rpg") or (message.channel.name=="rpg-development")):
+	if (not (message.author == bot.user)) and ((message.channel.name=="rpg") or (message.channel.name=="spammy-or-test-please-mute")):
 		themap.node(player).handleAction(message.content)
 		global replies
 		if not "\n".join(replies)=="":
