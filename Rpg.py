@@ -3,6 +3,7 @@ from discord.ext import commands
 from discord.ext.commands import Bot
 from datetime import datetime
 from time import sleep
+import asyncio
 
 from Base import *
 from RpgClass import *
@@ -77,18 +78,19 @@ channelMessages={}
 
 @bot.event
 async def on_message(message):
+	loop = asyncio.get_event_loop()
 	if (not (message.author == bot.user)) and ((message.channel.name=="rpg") or (message.channel.name=="spammy-or-test-please-mute")):
 		themap.node(player).handleAction(message.content)
 		global replies
 		if not "\n".join(replies)=="":
 			try:
-				await channelMessages[message.channel].edit(content="\n".join(replies))
+				loop.create_task( channelMessages[message.channel].edit(content="\n".join(replies)) )
 			except KeyError:
 				channelMessages[message.channel]=await message.channel.send("\n".join(replies))
 			except:
-				await message.channel.send("```\ncommand output failed to send!!??\n```")
+				loop.create_task(channelMessages[message.channel].edit(content="```\ncommand output failed to send!!??\n```"))
 		replies=[]
-		await message.delete()
+		loop.create_task(message.delete())
 
 @bot.event
 async def on_ready():
