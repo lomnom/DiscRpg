@@ -1,3 +1,9 @@
+'''
+Author: Lomnom
+Lisence: MIT lisence
+Description: Defines the game internals
+'''
+
 import discord
 from discord.ext import commands
 from discord.ext.commands import Bot
