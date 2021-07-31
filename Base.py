@@ -1,3 +1,9 @@
+'''
+Author: Lomnom
+Lisence: MIT lisence
+Description: Common actions called by every tile
+'''
+
 def setInternalVals(aPlayer,aMap,aprint):
 	global player,themap,dprint
 	player,themap,dprint=aPlayer,aMap,aprint
@@ -87,7 +93,7 @@ def info(args):
 baseActions={"w":w,"a":a,"s":s,"d":d,"move":move,"map":pmap,"actions":actions,"backpack":backpack,"use":use,"drop":drop,"swap":swap,"info":info}
 
 def err(thing,args):
-	# dprint("you cant do that")
+	dprint("you cant do that")
 	pass
 def errMov(err):
 	dprint("You cant move there! ({})".format(err))
