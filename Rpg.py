@@ -33,36 +33,35 @@ def takeF(args):
 	dprint("You stash a disgusting banana into your backpack, to sell for barely a few chips at the almost deserted mainland")
 	player.items+=[RpgItem("Disgusting Banana","a Wormy, mouldy and slimy banana",1,1,eatF)]
 
-def err(thing,args):
-	# dprint("you cant do that")
-	pass
-def errMov(err):
-	dprint("You cant move there!")
+shades=[" ","░","▒","▓","█"]
 
-empty=RpgNode(startActionE,withBase({"look":lookE,"touch":touchE}),err,".")
-food=RpgNode(startActionF,withBase({"look":lookF,"touch":touchF,"eat":eatF,"smell": smellF,"take":takeF}),err,"F")
+path=RpgNode(startActionE,withBase({"look":lookE,"touch":touchE}),err,shades[0],True)
+pathedge=RpgNode(startActionE,{},err,shades[2],False)
+void=RpgNode(startActionE,{},err,shades[4],False)
+
+food=RpgNode(startActionF,withBase({"look":lookF,"touch":touchF,"eat":eatF,"smell": smellF,"take":takeF}),err,"F",True)
 
 themap=RpgMap(
 	[
-		[empty,empty],
-		[None ,empty,empty],
-		[None ,None ,empty,empty],
-		[None ,None ,None ,empty],
-		[None ,None ,None ,empty],
-		[None ,None ,None ,empty],
-		[None ,None ,None ,empty],
-		[None ,None ,None ,empty],
-		[None ,None ,None ,empty],
-		[None ,None ,None ,empty],
-		[None ,None ,None ,empty],
-		[None ,None ,None ,empty],
-		[None ,None ,None ,empty],
-		[None ,None ,None ,food ],
+		[void,void,void,void, path,path,path,path, pathedge, void,void,void],
+		[void,void,void,void, path,path,path,path, pathedge, void,void,void],
+		[void,void,void,void, path,path,path,path, pathedge, void,void,void],
+		[void,void,void,void, path,path,path,path, pathedge, void,void,void],
+		[void,void,void,void, path,path,path,path, pathedge, void,void,void],
+		[void,void,void,void, path,path,path,path, pathedge, void,void,void],
+		[void,void,void,void, path,path,path,path, pathedge, void,void,void],
+		[void,void,void,void, path,path,path,path, pathedge, void,void,void],
+		[void,void,void,void, path,path,path,path, pathedge, void,void,void],
+		[void,void,void,void, path,path,path,path, pathedge, void,void,void],
+		[void,void,void,void, path,path,path,path, pathedge, void,void,void],
+		[void,void,void,void, path,path,path,path, pathedge, void,void,void],
+		[void,void,void,void, path,path,path,path, pathedge, void,void,void],
+		[void,void,void,void, path,path,path,food, pathedge, void,void,void],
 	],
 	errMov
 )
 
-player=RpgPlayer(0,0,[],"O")
+player=RpgPlayer(4,0,[],"O")
 
 setInternalVals(player,themap,dprint)
 
@@ -74,19 +73,22 @@ bot = commands.Bot(command_prefix='$')
 
 log("started!")
 
-lock=False
+channelMessages={}
 
 @bot.event
 async def on_message(message):
-	if not (message.author == bot.user): #makesure its not receiving own message 
+	if (not (message.author == bot.user)) and ((message.channel.name=="rpg") or (message.channel.name=="spammy-or-test-please-mute")):
 		themap.node(player).handleAction(message.content)
 		global replies
 		if not "\n".join(replies)=="":
 			try:
-				await message.channel.send("\n".join(replies))
-			except:
-				await message.channel.send("```\ncommand output failed to send!!??\n```")
+				await channelMessages[message.channel].edit(content="\n".join(replies))
+			except KeyError:
+				channelMessages[message.channel]=await message.channel.send("\n".join(replies))
+			# except:
+				# await message.channel.send("```\ncommand output failed to send!!??\n```")
 		replies=[]
+		await message.delete()
 
 @bot.event
 async def on_ready():

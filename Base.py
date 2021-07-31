@@ -17,14 +17,20 @@ def a(args):
 	themap.goto(player,player.x-1,player.y)
 	pmap([])
 def move(args):
-	funcs={"w":w,"a":a,"s":s,"d":d}
 	args=list(args[0])
 	for direction in args:
-		try:
-			funcs[direction]([])
-		except KeyError:
-			dprint("{} isnt 'w' 'a' 's' or 'd'".format(direction))
-			break
+		if direction=="w":
+			themap.goto(player,player.x,player.y-1)
+		elif direction=="a":
+			themap.goto(player,player.x-1,player.y)
+		elif direction=="s":
+			themap.goto(player,player.x,player.y+1)
+		elif direction=="d":
+			themap.goto(player,player.x+1,player.y)
+		else:
+			dprint("{} is not w,a,s or d".format(direction))
+	pmap([])
+
 def actions(args):
 	string="available actions: "
 	for aAction in themap.node(player).actions:
@@ -81,7 +87,7 @@ def err(thing,args):
 	# dprint("you cant do that")
 	pass
 def errMov(err):
-	dprint("You cant move there!")
+	dprint("You cant move there! ({})".format(err))
 
 def withBase(dict1):
 	return dict(dict1,**baseActions)

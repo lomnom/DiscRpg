@@ -3,7 +3,8 @@ from discord.ext import commands
 from discord.ext.commands import Bot
 
 class RpgNode:
-	def __init__(self,startAction,actions,errorAction,icons):
+	def __init__(self,startAction,actions,errorAction,icons,passable):
+		self.passable=passable
 		self.startAction=startAction
 		self.icon=icons
 		self.actions=actions
@@ -49,14 +50,18 @@ class RpgMap:
 			self.failFunc("OutOfRange")
 			return
 		try:
+			if not self.nodes[y][x].passable:
+				self.failFunc("Unpassable")
+				return
 			if not self.nodes[y][x]==None:
 				player.x=x
 				player.y=y
 				self.nodes[y][x].startAction()
 				return
+			else:
+				self.failFunc("Nothing")
 		except IndexError:
 			self.failFunc("OutOfRange")
-		self.failFunc("Nothing")
 
 	def getProjection(self,player):
 		projection=""
