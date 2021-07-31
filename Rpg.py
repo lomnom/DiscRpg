@@ -15,22 +15,22 @@ def dprint(thing):
 
 def startActionE():
 	dprint("You enter a creepy room, the place around you is devoid of color")
-def lookE(args):
+def lookE():
 	dprint("You look around and see rotting bodies")
-def touchE(args):
+def touchE():
 	dprint("the rotting body leaves a stench on your hand")
 
 def startActionF():
 	dprint("You enter a room with suprisingly few dead bodies, and a few degrading crates of bananas")
-def lookF(args):
+def lookF():
 	dprint("You look around and see an old stash of bananas")
-def touchF(args):
+def touchF():
 	dprint("You touch some bananas, they feel powdery from the mould")
-def smellF(args):
+def smellF():
 	dprint("You smell the bananas, they smell suprisingly nice, probably because you had been starving")
-def eatF(args):
+def eatF():
 	dprint("You take a bite from the banana, recoiling in disgust as tens of worms wiggle from the exposed banana meat")
-def takeF(args):
+def takeF():
 	dprint("You stash a disgusting banana into your backpack, to sell for barely a few chips at the almost deserted mainland")
 	player.items+=[RpgItem("Disgusting Banana","a Wormy, mouldy and slimy banana",1,1,eatF)]
 
@@ -95,5 +95,5 @@ async def on_message(message):
 @bot.event
 async def on_ready():
 	log('RPGBOT logged in as {0.user}'.format(bot))
-    
+	
 bot.run(open("key.txt","r").read())

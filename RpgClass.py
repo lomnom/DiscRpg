@@ -2,6 +2,12 @@ import discord
 from discord.ext import commands
 from discord.ext.commands import Bot
 
+class RpgAction:
+	def __init__(self,function,emoji,args):
+		self.function=function
+		self.emoji=emoji
+		self.args=args
+
 class RpgNode:
 	def __init__(self,startAction,actions,errorAction,icons,passable):
 		self.passable=passable
