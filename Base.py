@@ -47,6 +47,7 @@ def use(args):
 	if item.durability<=0:
 		dprint(player.items[itemIndex].name+" was used up!")
 		player.items.pop(itemIndex)
+	backpack([])
 def backpack(args):
 	backpackStr="Items:\n"
 	for item in range(len(player.items)):
@@ -62,6 +63,7 @@ def drop(args):
 		return
 	dprint("dropped {}".format(player.items[itemIndex].name))
 	player.items.pop(itemIndex)
+	backpack([])
 def swap(args):
 	try:
 		itemIndex=[int(args[0]),int(args[1])]
@@ -72,6 +74,7 @@ def swap(args):
 	item1=player.items[itemIndex[0]]
 	player.items[itemIndex[0]]=player.items[itemIndex[1]]
 	player.items[itemIndex[1]]=item1
+	backpack([])
 def info(args):
 	try:
 		itemIndex=int(args[0])
