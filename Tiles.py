@@ -2,6 +2,7 @@
 Visuals and textures definition
 '''
 
+shades=[" ","░","▒","▓","█"]
 from Base import *  # Import game functions
 from RpgClass import *  # Game engine
 
@@ -64,5 +65,3 @@ themap=RpgMap(
 	],
 	errMov # when moved out of bounds
 )
-
-shades=[" ","░","▒","▓","█"]

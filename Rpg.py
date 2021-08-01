@@ -20,39 +20,6 @@ bot = commands.Bot(command_prefix='$')
 setbot(bot)
 
 '''
-Visuals and textures definition
-'''
-
-shades=[" ","░","▒","▓","█"]
-
-path=RpgNode(startActionE,withBase({"👀":lookE,"🤚":touchE}),err,shades[0],True)  # to walk on
-pathedge=RpgNode(startActionE,{},err,shades[2],False) # a different type of path that cannot walk on, used for shading
-void=RpgNode(startActionE,{},err,shades[4],False) # Walls that cannot be walked on
-
-food=RpgNode(startActionF,withBase({"👀":lookF,"🤚":touchF,"🍽":eatF,"👃": smellF,"✋":takeF}),err,"F",True) # Custom tile that is food, and can take bananas
-
-themap=RpgMap(
-	[
-		[void,void,void,void, path,path,path,path, pathedge, void,void,void],
-		[void,void,void,void, path,path,path,path, pathedge, void,void,void],
-		[void,void,void,void, path,path,path,path, pathedge, void,void,void],
-		[void,void,void,void, path,path,path,path, pathedge, void,void,void],
-		[void,void,void,void, path,path,path,path, pathedge, void,void,void],
-		[void,void,void,void, path,path,path,path, pathedge, void,void,void],
-		[void,void,void,void, path,path,path,path, pathedge, void,void,void],
-		[void,void,void,void, path,path,path,path, pathedge, void,void,void],
-		[void,void,void,void, path,path,path,path, pathedge, void,void,void],
-		[void,void,void,void, path,path,path,path, pathedge, void,void,void],
-		[void,void,void,void, path,path,path,path, pathedge, void,void,void],
-		[void,void,void,void, path,path,path,path, pathedge, void,void,void],
-		[void,void,void,void, path,path,path,path, pathedge, void,void,void],
-		[void,void,void,void, path,path,path,food, pathedge, void,void,void],
-	],
-	errMov # when moved out of bounds
-)
-
-
-'''
 Logging starts
 '''
 
