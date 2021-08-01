@@ -10,37 +10,65 @@ from datetime import datetime
 from time import sleep
 import asyncio
 
-from Base import *  # Import simple game functions
+from Base import *  # Import game functions
 from RpgClass import *  # Game engine
 
 replies=[]  # Queue of replies to send back to user
 def dprint(message):  # Discord print
 	global replies
 	replies+=["```\n"+message+"```"]
+async def dflush(channel):
+	global replies
+	if not "\n".join(replies)=="":
+		try: # Edits the old message if there is one
+			await channelMessages[channel].edit(content="\n".join(replies))
+		except KeyError: # Create a new message if it does not exist
+			channelMessages[channel]=await channel.send("\n".join(replies))
+			messageReactions[channelMessages[channel]]=[]
+		except: # Sends an error message if reply cannot be sent for example > 6000 chars
+			await channelMessages[channel].edit(content="```\ncommand output failed to send!!??\n```")
+	replies=[]
 
-# Actions that happen in the empty space appended with ---E
-def startActionE(): 
-	dprint("You enter a creepy room, the place around you is devoid of color")
-def lookE():
-	dprint("You look around and see rotting bodies")
-def touchE():
-	dprint("the rotting body leaves a stench on your hand")
+async def dinput(message,channel):
+	message=await channel.send("```\n"+message+"\n```")
+	def check(message):
+		return message.channel==channel and not message.author == bot.user
+	reply= await bot.wait_for('message', check= check)
+	contents=reply.content
+	await reply.delete()
+	await message.delete()
+	return contents
 
-# Actions that happen in the Fruit tile appended with ---F
-def startActionF():
-	dprint("You enter a room with suprisingly few dead bodies, and a few degrading crates of bananas")
-def lookF():
-	dprint("You look around and see an old stash of bananas")
-def touchF():
-	dprint("You touch some bananas, they feel powdery from the mould")
-def smellF():
-	dprint("You smell the bananas, they smell suprisingly nice, probably because you had been starving")
-def eatF():
-	dprint("You take a bite from the banana, recoiling in disgust as tens of worms wiggle from the exposed banana meat")
-def takeF():
-	dprint("You stash a disgusting banana into your backpack, to sell for barely a few chips at the almost deserted mainland")
-	player.items+=[RpgItem("Disgusting Banana","a Wormy, mouldy and slimy banana",1,1,eatF)]
+async def dreactOne(channel,emoji):
+	if not emoji in messageReactions[channelMessages[channel]]:
+		messageReactions[channelMessages[channel]]+=[emoji]
+		try:
+			await channelMessages[channel].add_reaction(emoji)
+		except:
+			log("unknown emoji {} encountered at {} {}".format(emoji,player.x,player.y))
+async def dreact(channel,emojis):
+	global messageReactions
+	loop = asyncio.get_event_loop()
+	tasks=[]
+	for emoji in emojis:
+		tasks+=[loop.create_task(dreactOne(channel,emoji))]
+	for emoji in messageReactions[channelMessages[channel]]: #remove other emojis
+		if not emoji in emojis:
+			tasks+=[loop.create_task( channelMessages[channel].remove_reaction(emoji,bot.user) )]
+	for task in tasks:
+		await task
+	messageReactions[channelMessages[channel]]=list(emojis)
 
+async def dgetreact(channel):
+	def check(reaction,user):
+		try:
+			return reaction.message==channelMessages[reaction.message.channel] and not (user==bot.user)
+		except:
+			return False
+	reaction= await bot.wait_for('reaction_add', check= check)
+	emoji=str(reaction[0])
+	await reaction[0].remove(reaction[1])
+	return emoji
 	
 '''
 Visuals and textures definition
@@ -48,11 +76,11 @@ Visuals and textures definition
 
 shades=[" ","░","▒","▓","█"]
 
-path=RpgNode(startActionE,withBase({"look":lookE,"touch":touchE}),err,shades[0],True)  # to walk on
+path=RpgNode(startActionE,withBase({"👀":lookE,"🤚":touchE}),err,shades[0],True)  # to walk on
 pathedge=RpgNode(startActionE,{},err,shades[2],False) # a different type of path that cannot walk on, used for shading
 void=RpgNode(startActionE,{},err,shades[4],False) # Walls that cannot be walked on
 
-food=RpgNode(startActionF,withBase({"look":lookF,"touch":touchF,"eat":eatF,"smell": smellF,"take":takeF}),err,"F",True) # Custom tile that is food, and can take bananas
+food=RpgNode(startActionF,withBase({"👀":lookF,"🤚":touchF,"🍽":eatF,"👃": smellF,"✋":takeF}),err,"F",True) # Custom tile that is food, and can take bananas
 
 # current map definition
 themap=RpgMap(
@@ -77,7 +105,7 @@ themap=RpgMap(
 
 player=RpgPlayer(4,0,[],"O") # defines the starting position, texture and items: see other file
 
-setInternalVals(player,themap,dprint) # to synchronise
+setInternalVals(player,themap,dprint,dflush,replies,dinput,dreact,dgetreact)
 
 def log(message): #define logging function to prevent repeated code
 		currentTime = str(datetime.now().time())
@@ -92,22 +120,19 @@ Logging starts
 log("started!")
 
 channelMessages={}
+messageReactions={}
 
-@bot.event
-async def on_message(message):
-	loop = asyncio.get_event_loop()
-	if (not (message.author == bot.user)) and ((message.channel.name=="rpg") or (message.channel.name=="spammy-or-test-please-mute")):  # define custom channels to read from
-		themap.node(player).handleAction(message.content)
-		global replies
-		if not "\n".join(replies)=="":
-			try: # Edits the old message if there is one
-				loop.create_task(channelMessages[message.channel].edit(content="\n".join(replies)))
-			except KeyError: # Create a new message if it does not exist
-				channelMessages[message.channel]=await message.channel.send("\n".join(replies))
-			except: # Sends an error message if reply cannot be sent for example > 6000 chars
-				loop.create_task(channelMessages[message.channel].edit(content="```\ncommand output failed to send!!??\n```"))
-		replies=[]
-		loop.create_task(message.delete()) # delete user commands
+@bot.command(pass_context=True)
+async def rpg(ctx):
+	dprint("RPG hath been summoned! loading...")
+	await dflush(ctx.channel)
+	await dreact(ctx.channel,themap.node(player).actions.keys())
+	dprint("RPG hath been summoned! loaded!")
+	await dflush(ctx.channel)
+	while True:
+		await dreact(ctx.channel,themap.node(player).actions.keys())
+		reaction=await dgetreact(ctx.channel)
+		await themap.node(player).handleAction(reaction,channelMessages[ctx.channel])
 
 @bot.event
 async def on_ready():

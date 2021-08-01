@@ -8,12 +8,6 @@ import discord
 from discord.ext import commands
 from discord.ext.commands import Bot
 
-class RpgAction:
-	def __init__(self,function,emoji,args):
-		self.function=function
-		self.emoji=emoji
-		self.args=args
-
 class RpgNode:
 	def __init__(self,startAction,actions,errorAction,icons,passable):
 		self.passable=passable
@@ -22,12 +16,11 @@ class RpgNode:
 		self.actions=actions
 		self.errorAction=errorAction
 
-	def handleAction(self,actionMessage):
-		action=actionMessage.split(" ")
+	async def handleAction(self,actionReaction,mapMessage):
 		try:
-			self.actions[action[0]] (action[1:])
+			await self.actions[str(actionReaction)] (actionReaction,mapMessage)
 		except KeyError:
-			self.errorAction(action[0],action[1:])
+			await self.errorAction(actionReaction,mapMessage,actionReaction)
 
 class RpgItem:
 	def __init__(self,name,description,fullDurability,durability,useFunc):
@@ -37,8 +30,8 @@ class RpgItem:
 		self.durability=durability
 		self.useFunc=useFunc
 
-	def use(self):
-		self.useFunc(self.durability)
+	async def use(self):
+		await self.useFunc(self.durability)
 		self.durability-=1
 
 class RpgPlayer:
@@ -57,23 +50,23 @@ class RpgMap:
 		self.failFunc=failFunc
 		self.nodes=nodes
 
-	def goto(self,player,x,y):
+	async def goto(self,reaction,message,player,x,y):
 		if x<0 or y<0:
-			self.failFunc("OutOfRange")
+			await self.failFunc(reaction,message,"OutOfRange")
 			return
 		try:
 			if not self.nodes[y][x].passable:
-				self.failFunc("Unpassable")
+				await self.failFunc(reaction,message,"Unpassable")
 				return
 			if not self.nodes[y][x]==None:
 				player.x=x
 				player.y=y
-				self.nodes[y][x].startAction()
+				await self.nodes[y][x].startAction(reaction,message)
 				return
 			else:
-				self.failFunc("Nothing")
+				await self.failFunc(reaction,message,"Nothing")
 		except IndexError:
-			self.failFunc("OutOfRange")
+			await self.failFunc(reaction,message,"OutOfRange")
 
 	def getProjection(self,player):
 		projection=""
