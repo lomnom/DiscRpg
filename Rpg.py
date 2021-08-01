@@ -10,6 +10,7 @@ from datetime import datetime
 
 from Base import *  # Import game functions
 from RpgClass import *  # Game engine
+from Tiles import *
 
 def log(message): #define logging function to prevent repeated code
 		currentTime = str(datetime.now().time())
