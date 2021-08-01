@@ -10,7 +10,7 @@ from datetime import datetime
 
 from Base import *  # Import game functions
 from RpgClass import *  # Game engine
-from Tiles import *
+from Maps import *
 
 def log(message): #define logging function to prevent repeated code
 		currentTime = str(datetime.now().time())
@@ -36,9 +36,11 @@ async def rpg(ctx):
 			await games[ctx.message.author].message.delete()
 		except:
 			log("could not delete old gameWindow")
+		await ctx.message.delete()
 		await games[ctx.message.author].createMessage(ctx.channel)
 	except KeyError:
-		games[ctx.message.author]=RpgGame(RpgPlayer(4,0,[],"O"),themap,ctx.message.author)
+		games[ctx.message.author]=RpgGame(RpgPlayer(4,0,[],"O"),levels,0,ctx.message.author)
+		await ctx.message.delete()
 		await games[ctx.message.author].createMessage(ctx.channel)
 		await games[ctx.message.author].run()
 

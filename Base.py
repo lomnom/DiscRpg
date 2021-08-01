@@ -115,43 +115,10 @@ async def info(game):
 baseActions={"⬆️":w,"⬇️":s,"⬅️":a,"➡️":d,"⏭":move,"🗺":pmap,"🎒":backpack,"⚔️":use,"🗑":drop,"🔁":swap,"❓":info}
 # 🍴
 
-async def err(game,error): #invalid action
-	dprint(game,"you cant do {}".format(error))
+async def err(game,message): #invalid action
+	dprint(game,"you cant do {}".format(message))
 	await dflush(game)
 async def errMov(game,error): #cant move
 	dprint(game,"You cant move there! ({})".format(err))
 def withBase(dict1):
 	return dict(dict1,**baseActions)
-
-# Actions that happen in the empty space appended with ---E
-async def startActionE(game): 
-	dprint(game,"You enter a creepy room, the place around you is devoid of color")
-async def lookE(game):
-	dprint(game,"You look around and see rotting bodies")
-	await dflush(game)
-async def touchE(game):
-	dprint(game,"the rotting body leaves a stench on your hand")
-	await dflush(game)
-
-# Actions that happen in the Fruit tile appended with ---F
-async def startActionF(game):
-	dprint(game,"You enter a room with suprisingly few dead bodies, and a few degrading crates of bananas")
-async def lookF(game):
-	dprint(game,"You look around and see an old stash of bananas")
-	await dflush(game)
-async def touchF(game):
-	dprint(game,"You touch some bananas, they feel powdery from the mould")
-	await dflush(game)
-async def smellF(game):
-	dprint(game,"You smell the bananas, they smell suprisingly nice, probably because you had been starving")
-	await dflush(game)
-async def eatF(game):
-	dprint(game,"You take a bite from the banana, recoiling in disgust as tens of worms wiggle from the exposed banana meat")
-	await dflush(game)
-async def takeF(game):
-	dprint(game,"You stash a disgusting banana into your backpack, to sell for barely a few chips at the almost deserted mainland")
-	game.player.items+=[RpgItem("Disgusting Banana","a Wormy, mouldy and slimy banana",1,1,eatBanana)]
-	await dflush(game)
-
-async def eatBanana(durability,game):
-	dprint(game,"You take a bite from the banana, recoiling in disgust as tens of worms wiggle from the exposed banana meat")

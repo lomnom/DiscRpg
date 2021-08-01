@@ -8,6 +8,8 @@ import discord
 from discord.ext import commands
 from discord.ext.commands import Bot
 import asyncio
+from yaml import load, dump
+from os.path import exists
 
 def setbot(abot):
 	global bot
@@ -64,10 +66,16 @@ async def dgetreact(game):
 	return emoji
 
 class RpgGame:
-	def __init__(self,player,themap,user):
+	def __init__(self,player,maps,map,user):
 		self.player=player
-		self.map=themap
+		self.maps=maps
+		self.mapId=map
+		self.map=maps[map]
 		self.user=user
+
+	async def setMap(self,mapId):
+		self.map=self.maps[mapId]
+		self.mapId=mapId
 
 	async def createMessage(self,channel):
 		self.reactions=[]
@@ -118,6 +126,7 @@ class RpgPlayer:
 		self.items=items
 		self.icon=icon
 	def use(self,index):
+		item=items[index]
 		items[index].use()
 		if items[index].durability<=0:
 			items.pop(index)
