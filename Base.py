@@ -121,4 +121,4 @@ async def err(game,message): #invalid action
 async def errMov(game,error): #cant move
 	dprint(game,"You cant move there! ({})".format(err))
 def withBase(dict1):
-	return dict(dict1,**baseActions)
+	return dict(baseActions,**dict1)

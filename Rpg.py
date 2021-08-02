@@ -13,8 +13,10 @@ from RpgClass import *  # Game engine
 from Maps import *
 
 def log(message): #define logging function to prevent repeated code
-		currentTime = str(datetime.now().time())
-		print("["+currentTime+"] "+message)
+	logFile=open("log.log",'a')
+	currentTime = str(datetime.now().time())
+	logFile.write("\n["+currentTime+"] "+message)
+	print("["+currentTime+"] "+message)
 
 bot = commands.Bot(command_prefix='$')
 
@@ -30,22 +32,34 @@ games={}
 
 @bot.command(pass_context=True)
 async def rpg(ctx):
+	if isinstance(ctx.channel, discord.channel.DMChannel):
+		await ctx.send("You cant use $rpg in a dm!")
+		return
 	try:
-		games[ctx.message.author]
+		games[ctx.message.author.id]
 		try:
-			await games[ctx.message.author].message.delete()
+			await games[ctx.message.author.id].message.delete()
 		except:
-			log("could not delete old gameWindow")
+			log("could not delete old gamewindow")
 		await ctx.message.delete()
-		await games[ctx.message.author].createMessage(ctx.channel)
+		await games[ctx.message.author.id].createMessage(ctx.channel)
 	except KeyError:
-		games[ctx.message.author]=RpgGame(RpgPlayer(4,0,[],"O"),levels,0,ctx.message.author)
-		await ctx.message.delete()
-		await games[ctx.message.author].createMessage(ctx.channel)
-		await games[ctx.message.author].run()
+		try:
+			games[ctx.message.author.id]=RpgSave(ctx.message.author.id).load(levels)
+			await games[ctx.message.author.id].createMessage(ctx.channel)
+		except ValueError:
+			games[ctx.message.author.id]=RpgGame(RpgPlayer(4,0,[],"O"),levels,0,ctx.message.author.id)
+			await ctx.message.delete()
+			await games[ctx.message.author.id].createMessage(ctx.channel)
+		await games[ctx.message.author.id].run()
 
 @bot.event
 async def on_ready():
 	log('RPGBOT logged in as {0.user}'.format(bot))
 	
 bot.run(open("key.txt","r").read())  # pulls your token from key.txt and runs the bot
+
+log("saving games...")
+for game in games:
+	RpgSave(games[game].user).store(games[game])
+log("saved!")

@@ -67,15 +67,19 @@ def portal(text,number,x,y):
 async def startActionM(game):
 	dprint(game,"You see a depressed old man with 2 children sitting on the floor.")
 	await dflush(game)
-	if await dinput(game,"Talk to the old man? yes/no")=="yes":
+	if (await dinput(game,"Talk to the old man? yes/no")).lower()=="yes":
 		dprint(game,"The old man gratefully shakes your hand, and offers a save token for a disgusting banana")
 		await dflush(game)
-		if await dinput(game,"Accept the deal? yes/no")=="yes":
+		if (await dinput(game,"Accept the deal? yes/no")).lower()=="yes":
 			dprint(game,"You accept the deal.")
-			try:
-				game.player.items.pop(game.player.items.index(dBanana))
-				game.player.items+=[saveToken]
-			except ValueError:
+			taken=False
+			for item in range(len(game.player.items)):
+				if game.player.items[item].name=="Disgusting Banana":
+					game.player.items.pop(item)
+					game.player.items+=[saveToken]
+					taken=True
+					break
+			if not taken:
 				dprint(game,"You do not have enough Disgusting Bananas!")
 		else:
 			dprint(game,"You refuse the deal and walk away.")

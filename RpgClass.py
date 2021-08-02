@@ -10,6 +10,8 @@ from discord.ext.commands import Bot
 import asyncio
 from yaml import load, dump
 from os.path import exists
+from os import mkdir
+import pickle 
 
 def setbot(abot):
 	global bot
@@ -29,37 +31,45 @@ async def dflush(game):
 async def dinput(game,message):
 	message=await game.message.channel.send("```\n"+message+"\n```")
 	def check(message):
-		return message.channel==game.message.channel and message.author==game.user and not message.author == bot.user
+		return message.channel==game.message.channel and message.author.id==game.user and not message.author == bot.user
 	reply= await bot.wait_for('message', check= check)
 	contents=reply.content
 	await reply.delete()
 	await message.delete()
 	return contents
 
-async def dreactOne(game,emoji):
-	if not emoji in game.reactions:
-		game.reactions+=[emoji]
-		try:
-			await game.message.add_reaction(emoji)
-		except:
-			log("unknown emoji {} encountered at {} {}".format(emoji,game.player.x,game.player.y))
+#await game.message.add_reaction(emojis[emoji]) 
+#game.message.clear_reaction(game.reactions[emoji])
 
 async def dreact(game,emojis):
 	global messageReactions
 	loop = asyncio.get_event_loop()
-	tasks=[]
-	for emoji in emojis:
-		tasks+=[loop.create_task(dreactOne(game,emoji))]
-	for emoji in game.reactions: #remove other emojis
-		if not emoji in emojis:
-			tasks+=[loop.create_task( game.message.remove_reaction(emoji,bot.user) )]
-	for task in tasks:
-		await task
-	game.reactions=list(emojis)
+	emojis=list(emojis)
+
+	for emoji in range(len(emojis)):
+		if len(game.reactions)-1 >= emoji and emojis[emoji] == game.reactions[emoji]:
+			continue
+		else:
+			#delete till equal
+			while (not len(game.reactions)-1 <= emoji) and (not emojis[emoji] == game.reactions[emoji]): 
+				await game.message.clear_reaction(game.reactions[emoji])
+				game.reactions.pop(emoji)
+			#if all deleted but no emoji, add emoji
+			if len(game.reactions)-1 <= emoji or emojis[emoji] == game.reactions[emoji]:
+				await game.message.add_reaction(emojis[emoji]) 
+				if len(game.reactions)-1 <= emoji:
+					game.reactions+=[emojis[emoji]]
+				else:
+					game.reactions[emoji]=emojis[emoji]
+
+	if not game.reactions == emojis:
+		for n in range( len(game.reactions) - len(emojis) ):
+			await game.message.clear_reaction(game.reactions[-1])
+			game.reactions.pop(-1)
 
 async def dgetreact(game):
 	def check(reaction,user):
-		return reaction.message==game.message and user==game.user and not (user==bot.user)
+		return reaction.message==game.message and user.id==game.user and not (user==bot.user)
 	reaction=await bot.wait_for('reaction_add', check= check)
 	emoji=str(reaction[0])
 	await reaction[0].remove(reaction[1])
@@ -92,6 +102,32 @@ class RpgGame:
 			await dreact(self,self.map.node(self.player).actions.keys())
 			reaction=await dgetreact(self)
 			await self.handleAction(reaction)
+
+class RpgSave:
+	def __init__(self,user):
+		self.user=user
+
+	def store(self,game):
+		self.player=game.player
+		self.map=game.mapId
+		try:
+			mkdir("saves")
+		except OSError:
+			pass
+		filehandler = open("saves/{}.pickle".format(self.user), 'wb') 
+		pickle.dump(self,filehandler)
+
+	def load(self,maps):
+		try:
+			try:
+				mkdir("saves")
+			except OSError:
+				pass
+			filehandler = open("saves/{}.pickle".format(self.user), 'rb')
+			self=pickle.load(filehandler)
+			return RpgGame(self.player,maps,self.map,self.user)
+		except FileNotFoundError:
+			raise ValueError
 
 class RpgNode:
 	def __init__(self,startAction,actions,errorAction,icons,passable):
