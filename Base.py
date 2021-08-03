@@ -5,6 +5,10 @@ Description: Common actions called by every tile
 '''
 from RpgClass import *
 
+def setGames(game):
+	global games
+	games=game
+
 async def pmap(game):
 	dprint(game,game.map.getProjection(game.player))
 	await dflush(game)
@@ -112,13 +116,34 @@ async def info(game):
 	dprint(game,item.description)
 	await dflush(game)
 
-baseActions={"⬆️":w,"⬇️":s,"⬅️":a,"➡️":d,"⏭":move,"🗺":pmap,"🎒":backpack,"⚔️":use,"🗑":drop,"🔁":swap,"❓":info}
+async def give(game):
+	try:
+		user=int((await dinput(game,"Who to give to? eg. @Dalithop"))[3:-1])
+	except ValueError:
+		dprint(game,"Mention was not valid!")
+		await dflush(game)
+		return
+	try:
+		otherGame=games[user]
+	except KeyError:
+		dprint(game,"The other person needs to run $rpg first! ({}}".format(user))
+		await dflush(game)
+		return
+	try:
+		otherGame.player.items+=[game.player.items.pop(int(await dinput(game,"Enter the item index! eg. 0")))]
+		dprint(game,"sent!")
+		await dflush(game)
+	except IndexError:
+		dprint(game,"item index invalid!")
+		await dflush(game)
+
+baseActions={"⬆️":w,"⬇️":s,"⬅️":a,"➡️":d,"⏭":move,"🗺":pmap,"🎒":backpack,"⚔️":use,"🗑":drop,"🔁":swap,"❓":info,"🎁":give}
 # 🍴
 
 async def err(game,message): #invalid action
 	dprint(game,"you cant do {}".format(message))
 	await dflush(game)
 async def errMov(game,error): #cant move
-	dprint(game,"You cant move there! ({})".format(err))
+	dprint(game,"You cant move there! ({})".format(error))
 def withBase(dict1):
 	return dict(baseActions,**dict1)

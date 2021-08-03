@@ -76,12 +76,13 @@ async def dgetreact(game):
 	return emoji
 
 class RpgGame:
-	def __init__(self,player,maps,map,user):
+	def __init__(self,player,maps,map,user,data):
 		self.player=player
 		self.maps=maps
 		self.mapId=map
 		self.map=maps[map]
 		self.user=user
+		self.data=data
 
 	async def setMap(self,mapId):
 		self.map=self.maps[mapId]
@@ -110,6 +111,7 @@ class RpgSave:
 	def store(self,game):
 		self.player=game.player
 		self.map=game.mapId
+		self.data=game.data
 		try:
 			mkdir("saves")
 		except OSError:
@@ -125,7 +127,7 @@ class RpgSave:
 				pass
 			filehandler = open("saves/{}.pickle".format(self.user), 'rb')
 			self=pickle.load(filehandler)
-			return RpgGame(self.player,maps,self.map,self.user)
+			return RpgGame(self.player,maps,self.map,self.user,self.data)
 		except FileNotFoundError:
 			raise ValueError
 
@@ -162,10 +164,21 @@ class RpgPlayer:
 		self.items=items
 		self.icon=icon
 	def use(self,index):
-		item=items[index]
 		items[index].use()
+		items[index].durability-=1
 		if items[index].durability<=0:
 			items.pop(index)
+	def hasitem(self,itemName):
+		for item in self.items:
+			if item.name==itemName:
+				return True
+		return False
+	def hasremoveitem(self,itemName):
+		for item in range(len(self.items)):
+			if self.items[item].name==itemName:
+				self.items.pop(item)
+				return True
+		return False
 
 class RpgMap:
 	def __init__(self,nodes,failFunc):
